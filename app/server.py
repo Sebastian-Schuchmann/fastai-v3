@@ -11,9 +11,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-export_file_url = 'https://drive.google.com/uc?export=download&id=1yGdjBN6o8RvXueXStE20uGWZfyaBJGH9'
-export_file_name = 'export.pkl'
-
 classes = ['churros', 'samosas']
 path = Path(__file__).parent
 
@@ -21,6 +18,8 @@ app = Starlette()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_headers=['X-Requested-With', 'Content-Type'])
 app.mount('/static', StaticFiles(directory='app/static'))
 
+def GetLabel(fileName):
+  return fileName.split('_')[0]
 
 async def download_file(url, dest):
     if dest.exists(): return
@@ -32,9 +31,8 @@ async def download_file(url, dest):
 
 
 async def setup_learner():
-    await download_file(export_file_url, path / export_file_name)
     try:
-        learn = load_learner(path, export_file_name)
+        learn = load_learner('./app/models/export.pkl')
         return learn
     except RuntimeError as e:
         if len(e.args) > 0 and 'CPU-only machine' in e.args[0]:
